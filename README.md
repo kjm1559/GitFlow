@@ -49,13 +49,18 @@ This repository strictly adheres to the following label rules for workflow manag
 
 | Label | Purpose |
 |:---|:- |
-| `[workflow]` | Changes to branch strategy, merge patterns, or core flow rules |
-| `[fix]` | Fixing tangled histories, orphaned branches, or broken rebase chains |
-| `[optimize]` | Improving flow efficiency (e.g., converting merge commits to squash, rebasing) |
-| `[docs]` | Updates to `SKILL.md` or `README.md` |
 | `[feat]` | Adding new workflow heuristics or automated branch detection patterns |
-| `[chore]` | Maintenance tasks, scripts, and repository management |
-| `[ci]` | CI/CD pipeline updates, automated workflow scripts |
+| `[fix]` | Fix tangled histories, orphaned branches, or broken rebase chains |
+| `[docs]` | Update documentation (`SKILL.md`, `README.md`, etc.) |
+| `[style]` | Code/style changes that do NOT affect logic (whitespace, formatting) |
+| `[refactor]` | Refactor workflow logic without changing behavior |
+| `[perf]` | Improve performance of workflow heuristics or scripts |
+| `[test]` | Add or update test cases for workflow logic |
+| `[chore]` | Maintenance tasks, tooling, repository management |
+| `[ci]` | CI/CD pipeline or automation script updates |
+| `[workflow]` | Changes to branch strategy, merge patterns, or core flow rules (GitFlow-specific) |
+| `[optimize]` | Improve flow efficiency (e.g., convert merge to squash, rebase automation) — GitFlow-specific |
+| `[revert]` | Revert a previous commit or workflow change |
 
 **PR Title Examples**:
 - `[workflow] rebase feature/x onto main for linear history`
