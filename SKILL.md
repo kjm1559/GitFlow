@@ -20,23 +20,64 @@ Instead of generic conflict resolution, the agent acts as a **Workflow Director*
 |:---|:-:|:-|
 | **Fast-forwardable** | Linear history, clean tip | Automatically perform `Fast-forward Merge` |
 | **Tangled **(Rebase) | Multiple heads, lost commits | Utilize `git reflog` to locate the parent branch, then `rebase` or `cherry-pick`|
-| **Merge Conflict **(Strategy) | Simultaneous changes on same files | Auto-resolve via `ours`/`theirs` or `theirs` based on the active workflow branch. |
+| **Merge Conflict **(Strategy) | Simultaneous changes on same files | **See Risk Judgment below** — never blind `ours`/`theirs` |
 | **Detached/Orphan** | `HEAD` pointing to an unanchored commit | Automatically bind to a new feature branch or `reset` to the active track. |
 
-## 🛠 Core Features
+## ⚠️ Risk Judgment Matrix & Safety Rules
 
-### 1. Automated Branch Flow Diagnosis
-By analyzing `git status`, `git log`, and remote tracking states, the agent determines the current "flow health" of the repository.
+Before executing **any** Git operation, the agent must evaluate risk:
 
-### 2. Smart Merge/Rebase Execution
-When a merge or rebase causes a bottleneck, the agent automatically decides the next step:
-* **Conflict**: Identify conflicting files and apply the most logical resolution (`theirs` for feature merges, `ours` for hotfixes).
-* **Abort & Reset**: If a workflow state is unrecoverable, it automatically aborts the operation and suggests a safe rollback.
+### 5-Tier Risk Scale
 
-### 3. Workflow Normalization & PR Generation
-Instead of fixing code, this skill fixes the **flow**. Once the flow is normalized:
-* **Action**: Commit the normalized state with a workflow-specific label.
-* **Report**: Generate a PR to document how the workflow was successfully restored or optimized.
+| Level | Name | Criteria | Agent Action |
+|:---:|:---|:-|:-|
+| **S** | **Safe** | Detached HEAD (no modifications), branch rename/cleanup, commit message typo | Auto-execute, then report via PR |
+| **W** | **Watch** | Local uncommitted changes at stake, simple rebase (no code overlap) | Create safety branch, execute, **report** results |
+| **C** | **Caution** | Merge/Rebase conflict on **non-code** files (`.gitignore`, lock files, whitespace-only) | Auto-resolve after identifying file type, then report |
+| **R** | **Restricted-Auto** | Merge/Rebase conflict on **code files** or significant text overlap | **Understand both sides first.** Present conflict summary → show options → let user decide. **Never blind `ours`/`theirs`** |
+| **D** | **Dangerous** | `--force`, `--hard`, orphaned commits, irreversible rebase | **Mandatory user confirmation.** Always provide reflog-based rollback reference |
+
+### 🔒 Mandatory Safety Rules
+
+#### 1. No Blind `ours`/`theirs` Resolution
+```
+NEVER auto-apply git checkout --ours/--theirs to source code files.
+```
+- Always diff/conflict summary first
+- Present both sides' changes to user
+- User makes final decision on **any** code-related conflicts
+
+#### 2. Reset Family Requires Explicit Consent
+```
+ALL -requires explicit approval from user with rollback reference:
+  - git reset --hard
+  - git reset --soft
+  - git reset --mixed
+  - git reset --keep
+```
+- Always provide the reflog position before applying
+- Never auto-apply in interactive rebase without confirmation
+
+#### 3. Force Push Requires Explicit Consent
+```
+ALL force variants require explicit approval:
+  - git push --force
+  - git push --force-with-lease
+  - git push --force-if-includes
+```
+- Show current remote state vs. intended state
+- Confirm no team members depend on the force-pushed branch
+
+## 🚑 Auto-Recovery Patterns
+
+### 1. Merge / Rebase Conflict
+* **Action**: Identify conflicting files (`git diff --name-only --diff-filter=U`) → **Never blindly apply** `ours`/`theirs` to code files → Present a summary to the user or resolve **only** if file type is trivial (e.g., `.gitignore`, lock files).
+
+### 2. Detached HEAD / Orphan
+* **Action**: Analyze `git status`. If no modifications exist, run `git checkout -` to immediately return to the previous branch. If there are modifications, create a new safety branch (`git checkout -b safe-recovery`).
+
+### 3. Lost / Amended Commits
+* **Action**: Verify state using `git reflog` and `git log`. Recover the most logical commit state using `git reset --soft` or `git branch <name> <hash>`.
 
 ## 📢 Automated Workflow Labels & Reporting
 
