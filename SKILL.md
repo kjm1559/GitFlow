@@ -1,91 +1,76 @@
-# GitFlow: Automated Recovery & Conflict Resolution
+# GitFlow: Automated Conflict Resolution & PR Workflow
 
 ## 🩺 Core Philosophy
-**"진단하고, 판단하고, 자동복구한다."**
-Git 흐름이 꼬이거나 충돌이 발생하면, 사용자에게 일일이 묻지 않고 에이전트가 직접 상태의 **'안전성'**을 판단하여 자동 복구합니다. 오직 **위험성이 매우 높은 경우만** 사용자에게 확인을 요구합니다.
+**"진단하고, 자동복구하고, 정상화 과정을 자동 보고한다."**
+Git 충돌, 꼬인 흐름, 실수한 커밋을 **에이전트가 스스로 판단하여 자동 복구**하며, 모든 작업 완료 시 **정확한 라벨링된 PR**과 **업데이트된 문서**를 자동으로 생성합니다.
 
-## ⚠️ Automated Judgment Rules (핵심 흐름)
+## 🎯 Primary Objectives (스킬의 목적)
+1.  **자동 충돌/꼬임 해결**: Git 흐름의 마비를 스스로 진단 및 복구 (사용자 개입 최소화).
+2.  **워크플로우 자동화**: 모든 수정 사항 및 복구는 `[feat]`, `[fix]` 라벨이 붙은 PR 생성을 통해 보고됨.
+3.  **문서 동기화**: 스킬의 철학과 주요 기능이 변경될 때 `README.md`를 즉시 갱신.
 
-에이전트는 모든 작업 전에 다음의 **위험도 매트릭스**를 따라 스스로 판단해야 합니다.
+## 🛠 Prerequisites
+* `git` CLI tools are available.
+* `gh` CLI (GitHub CLI) is available for PR creation.
+
+## ⚠️ Automated Risk Judgment Matrix (복구 로직)
+모든 복구 작업은 다음과 같이 스스로 위험도를 판단하여 실행합니다:
 
 | 위험도 | 상황 예시 | 에이전트 행동 |
-|:---|---|:---|
-| **Safe **(자동처리) | Detached HEAD, Merge Conflict 파일 처리, Local Rebase 실패, 브랜치 이름 오타 | **즉시 진단 후 자동 명령어 실행 및 정상화** |
-| **Caution **(자동+보고) | Losing local uncommitted changes, Rebase에서 커밋 메시지 자동 수정 | 백업(Stash 또는 임시 브랜치) 후 자동 처리하고 결과를 알립니다. |
-| **Dangerous (필수 확인)** | `git push --force` (원격 기준), `reset --hard` (활용 중 브랜치 대상), Merge가 불가능한 양상 | **반드시 사용자에게 상태를 보고하고 해결책(Option)을 제시하여 확인** 받기 |
+|:---|:-:|:-:|
+| **Safe** (자동) | Detached HEAD, Merge/Rebase 충돌 | **즉시 실행 후 정상화 보고** |
+| **Caution** (보고) | 로컬 변경사항 손실 가능성 | 임시 브랜치 생성 후 실행 및 결과 보고 |
+| **Dangerous** (확인) | Force Push, 원본 Commit 삭제 | 반드시 사용자에게 확인 요청 (옵션 제시) |
 
-## 🧠 Automated Workflow Logic
+## 🚑 Auto-Recovery Patterns (자동 복구 매개변수)
 
-### 1. 상황 진단 (Auto-Diagnosis)
-사용자가 Git 관련 문제를 언급하거나 충돌 파일이 감지되면, 즉시 다음을 실행하여 현황 파악:
-1. `git status`: 현재 작업 트리 및 충돌 파일 확인.
-2. `git log --oneline -5`: 현재 HEAD 위치 검증.
-3. `git reflog --oneline -10`: 마지막 정상 포인트 확인.
+### 1. Merge / Rebase Conflict
+* **Action**: 충돌 파일 식별 (`git diff --name-only --diff-filter=U`) → `ours`/`theirs` 전략 적용 → `git add` → `git commit` 또는 `git rebase --continue` 자동 실행.
 
-### 2. 충돌 자동 처리 (Auto-Conflict Resolution)
-Standard Merge/Rebase 충돌이 발생했을 때, 에이전트는 다음 로직으로 자동 처리해야 합니다:
-- **충돌 파일 식별**: `git diff --name-only --diff-filter=U`
-- **전략 자동 선택**: 
-  - 코드 충돌 시: `ours` (현재 브랜치를 우선) 또는 `theirs` (수입된 브랜치를 우선) 중 문맥에 따라 가장 안전한 것 선택.
-  - 파일 불필요 충돌 시: 파일 삭제 또는 `ignore-attrs` 처리.
-- **완료 처리**: 모든 충돌 해결 후 자동으로 `git add .` 및 `git commit` 또는 `git rebase --continue`를 이어갑니다.
+### 2. Detached HEAD / Orphan
+* **Action**: `git status` 분석 후 파일 수정 유무 파악. 무수정 시 `git checkout -`, 수정 시 `git checkout -b safe-recovery`.
 
-### 3. 꼬인 흐름 자동 복구 (Auto-Flow Recovery)
-브랜치가 꼬인 상태(Detached HEAD, Orphan, Lost Commit)를 판단하고 자동 정상화:
-- **Detached HEAD**: 
-  - 파일 수정이 없으면: `git checkout -` (직전 브랜치로 바로 복귀).
-  - 파일 수정이 있다면: `git checkout -b <restored_name>` (새로운 브랜치로 안전하게 분리).
-- **실수한 커밋 **(Wrong Commit) 
-  - `reflog`에서 마지막 합리적 포인트를 찾아 `git reset --soft` (커밋 기록만 살리고 코드는 그대로 둔 채) 후, 메시지를 `amend`하여 자동 수정합니다.
+### 3. Lost / Amended Commits
+* **Action**: `git reflog` 및 `git log` 검증 후, 가장 가까운 지점을 찾아 `git reset --soft` 또는 `git branch <name> <hash>`로 복원.
 
-## 📋 Operational Constraints
-- **Safety First**: 무조건 작업 전 `git branch safety-backup-$(date)`: 로 임시 브랜치를 만들어두고 작업을 시작합니다.
-- **Atomicity**: 충돌과 복구는 항상 하나의 논리적 플로우로 처리하며, 중간에 중간 상태가 남지 않도록 합니다.
+## 📢 Auto-Reporting & Workflow (PR & 문서 자동화)
 
-## 📝 Recovery Patterns
+모든 기술적 작업이 완료되면 즉시 다음 워크플로우를 실행합니다:
 
-### 1. Standard Merge Conflict (자동 처리)
-1. 충돌 파일 목록을 추출합니다.
-2. 파일의 충돌 마커(`<<<<<<`, `======`, `>>>>>>>`)를 제거합니다.
-3. 문맥을 파악하여 가장 논리적인 결과로 코드를 정리합니다.
-4. `git add <resolved_files>` 를 실행합니다.
-5. `git commit -m "Auto-resolved merge conflicts"**` 로 작업을 완료합니다.</s>
+### 1. Commit Convention (커밋 라벨링)
+모든 로컬 수정 사항은 다음 라벨을 사용하여 커밋합니다:
+* `[feat]`: 새로운 복구 기능, 자동화 로직 추가
+* `[fix]`: 충돌 해결 로직 개선, 복구 실패 수정
+* `[docs]`: `SKILL.md` 또는 `README.md` 업데이트
+* `[refactor]`: 기존 코드 재구성
 
-### 2. Rebase Failed / Conflicts (자동 처리)
-1. 충돌이 발생한 파일들을 확인합니다.
-2. `git checkout --ours <file>` 또는 `git checkout --theirs <file>` 중 해당 상황(예: feature branch 병합)에 맞는 전략으로 처리합니다.
-3. 모든 충돌이 해결되면 `git rebase --continue`를 실행하여 자동으로 이어갑니다. 
+### 2. Pull Request Automation
+복구된 브랜치는 반드시 `gh` CLI를 사용하여 다음과 같이 PR 생성이 유도되어야 합니다:
+* **Title format**: `[label] description of automated fix` (예: `[fix] resolved merge conflict in component X`)
+* **Body format**:
+  > ## 변경 사항 요약
+  > ### 주요 목적: (문제 설명 및 자동 복구 목적)
+  > ### 파일 구성: (변경된 주요 파일 요약)
+  > ### 핵심 기능/수정: (에이전트가 수행한 동작 요약)
 
-### 3. Dangerous Action Triggered (사용자 확인 필요)
-1. **Force Push가 필요한 상황**: 원격 저장소의 변경 사항을 로컬에서 무시해야 하는 경우.
-   - 행동: "이 작업은 원격의 기존 히스토리를overwrite합니다. 진행하시겠습니까? (Y/N)"
-2. **Irreversible Reset**: 히스토리가 완전히 지워지는 `reset --hard`.
-   - 행동: "이 작업은 최근 커밋을 복구할 수 없게 만듭니다. 진행하시겠습니까? (Y/N)"
+### 3. Documentation Update
+스킬의 주요 로직이나 철학이 변경된 경우, 에이전트는 즉시 `README.md`를 업데이트해야 합니다.
+* **Update trigger**: "철학 정의 변경", "새로운 위험도 라벨 추가", "주요 자동화 기능 확장"
 
-## 🎯 Quick Reference
-
-### Auto-Process Commands (Behind the Scenes)
-
-| Situation | Primary Command | Fallback |
-|:-:|:-|:-|
-| Merge Conflict | `git checkout --theirs` or `ours` | `git merge --abort` |
-| Rebase Conflict | `git rebase --continue` | `git rebase --abort` |
-| Detached HEAD | `git checkout -` | `git checkout -b <name>` |
-| Lost Commit | `git reflog` → `git branch <name> <hash>` | `git fsck --lost-found` |
-| Wrong Commit | `git reset --soft @{-1}` | `git reset --hard` |
-
-## 📋 Decision Flowchart (Mental Model)
+## 📋 Operations Flowchart (에이전트 실행 순서)
 
 ```
-User Reports Issue
+User Reports Git Issue
   ↓
-Auto-Diagnose (status + reflog + log)
+[1] Auto-Diagnosis (status + reflog) → Determine Risk Matrix
   ↓
-Is it dangerous? → YES → Ask user for confirmation
-  ↓ NO
-Is it a known safe pattern?
-  ↓ YES → Auto-apply fix → Report result
-  ↓ NO → Ask user: " unsure. What should I do?"
+[2] Automated Recovery (Conflict/Rebase/Head fixes)
+  ↓
+[3] Create Safety Branch (for all Dangerous/Heavy changes)
+  ↓
+[4] Commit with Label ([fix]/[feat]/[docs])
+  ↓
+[5] Generate Auto PR (gh pr create) & Update README.md
 ```
 
 *Last verified: 2026-04-25*
