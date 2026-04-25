@@ -1,76 +1,73 @@
-# GitFlow: Automated Conflict Resolution & PR Workflow
+# GitFlow: Workflow Optimization & Flow Recovery
 
 ## 🩺 Core Philosophy
-**"Diagnose, auto-recover, and report through PRs & Docs."**
-Instead of mere conflict resolution, this skill enables the agent to **self-diagnose**, **auto-recover** Git flow issues (merge conflicts, detached HEAD, orphaned commits), and **automatically report** all fixes and changes through labeled pull requests and synchronized documentation.
+**"Focus on the Flow, automate the recovery."**
+This skill specializes in managing **Git Workflows **(branching strategies, merge patterns) and **recovering tangled histories**. It does not focus on basic Git commands (add, commit, push) but rather on optimizing the high-level flow, diagnosing flow bottlenecks, and normalizing workflows through automated Pull Requests.
 
 ## 🎯 Primary Objectives
-1.  **Auto-Conflict & Flow Resolution**: Automatically resolve all Git flow bottlenecks (conflicts, detached HEAD, lost commits).
-2.  **Automated Workflow Reporting**: All automated fixes, logic additions, and patches are reported via PRs with proper labels (`[feat]`, `[fix]`, `[docs]`).
-3.  **Continuous Documentation Sync**: When the core logic or philosophy changes, `README.md` and `SKILL.md` are updated immediately.
+1.  **Flow Optimization**: Automatically decide and apply the most efficient workflow strategy (Fast-forward, Squash, Merge, or Rebase) based on branch context.
+2.  **Tangle Resolution**: Diagnose and untangle corrupted branch histories (Detached HEAD, Orphaned branches, or Rebase dead-ends) autonomously.
+3.  **Automated Workflow Reporting**: All flow modifications and normalizations are reported via Pull Requests with workflow-appropriate labels.
 
 ## 🛠 Prerequisites
-* `git` CLI tools must be available.
-* `gh` CLI (GitHub CLI) must be available for automated PR creation.
+* `git` CLI tools must be available for flow management.
+* `gh` CLI (GitHub CLI) is highly recommended for automated PR generation.
 
-## ⚠️ Automated Risk Judgment Matrix
-Before executing any recovery task, the agent must self-evaluate the risk level:
+## 🧠 Workflow Diagnosis & Decision Logic
+Instead of generic conflict resolution, the agent acts as a **Workflow Director**:
 
-| Risk Level | Example Situation | Agent Action |
-|:---|:-:|:-:|
-| **Safe** (Auto) | Detached HEAD, Standard Merge/Rebase conflict | **Execute immediate recovery, then report via PR.** |
-| **Caution** (Report) | Local uncommitted changes at risk | Create a safety branch, execute the fix, and report results. |
-| **Dangerous** (Must Ask) | Force Push, permanent Commit deletion | **Strictly prompt the user for confirmation** (provide options). |
+| Workflow State | Diagnosis Criteria | Recommended Strategy |
+|:---|:-:|:-|
+| **Fast-forwardable** | Linear history, clean tip | Automatically perform `Fast-forward Merge` |
+| **Tangled **(Rebase) | Multiple heads, lost commits | Utilize `git reflog` to locate the parent branch, then `rebase` or `cherry-pick`|
+| **Merge Conflict **(Strategy) | Simultaneous changes on same files | Auto-resolve via `ours`/`theirs` or `theirs` based on the active workflow branch. |
+| **Detached/Orphan** | `HEAD` pointing to an unanchored commit | Automatically bind to a new feature branch or `reset` to the active track. |
 
-## 🚑 Auto-Recovery Patterns
+## 🛠 Core Features
 
-### 1. Merge / Rebase Conflict
-* **Action**: Identify conflicting files (`git diff --name-only --diff-filter=U`) → Apply `ours`/`theirs` strategy based on context → `git add` → Run `git commit` or `git rebase --continue` automatically.
+### 1. Automated Branch Flow Diagnosis
+By analyzing `git status`, `git log`, and remote tracking states, the agent determines the current "flow health" of the repository.
 
-### 2. Detached HEAD / Orphan
-* **Action**: Analyze `git status`. If no modifications exist, run `git checkout -` to immediately return to the previous branch. If there are modifications, create a new safety branch (`git checkout -b safe-recovery`).
+### 2. Smart Merge/Rebase Execution
+When a merge or rebase causes a bottleneck, the agent automatically decides the next step:
+* **Conflict**: Identify conflicting files and apply the most logical resolution (`theirs` for feature merges, `ours` for hotfixes).
+* **Abort & Reset**: If a workflow state is unrecoverable, it automatically aborts the operation and suggests a safe rollback.
 
-### 3. Lost / Amended Commits
-* **Action**: Verify state using `git reflog` and `git log`. Recover the most logical commit state using `git reset --soft` or `git branch <name> <hash>`.
+### 3. Workflow Normalization & PR Generation
+Instead of fixing code, this skill fixes the **flow**. Once the flow is normalized:
+* **Action**: Commit the normalized state with a workflow-specific label.
+* **Report**: Generate a PR to document how the workflow was successfully restored or optimized.
 
-## 📢 Auto-Reporting & Workflow (PR & Docs Automation)
+## 📢 Automated Workflow Labels & Reporting
 
-When all technical tasks are completed, the agent MUST execute the following automation workflow:
+When normalizing a Git Flow, the following labels should be used in commit titles and PR bodies:
 
-### 1. Commit & Pull Request Convention
-All changes and fixes must be committed with a specific prefix:
-* `[feat]`: New automated recovery features, patterns, or logic additions.
-* `[fix]`: Fixes for bugs, logic improvements in conflict handling.
-* `[docs]`: Updates to `SKILL.md` or `README.md`.
-* `[refactor]`: Code refactoring with no functional changes.
+| Label | Purpose |
+|:---|:-|
+| `[workflow]` | Changes related to branch strategy, merge patterns, or flow rules |
+| `[fix]` | Fixing tangled histories, orphaned branches, or broken rebase chains |
+| `[optimize]` | Improving flow efficiency (e.g., converting a merge commit to a squash) |
+| `[docs]` | Updating the skill's documentation or workflow rules |
+| `[feat]` | Adding new workflow heuristics or automated recovery patterns |
 
-**PR Title Format**: `[label] description of automated fix` (e.g., `[fix] resolved merge conflict in component X`, `[feat] added auto-detached-head recovery`).
+**PR Title Format**: `[label] workflow change summary` (e.g., `[workflow] rebase feature/x onto main`, `[fix] resolved tangled rebase chain involving branches A & B`).
 
-**PR Body Template**:
-> ## Summary of Changes
-> ### Primary Objective: (Problem description & auto-fix purpose)
-> ### File Setup: (Summary of modified key files)
-> ### Key Actions: (Summary of automated actions performed)
-
-### 2. Documentation Update Triggers
-When the skill's core logic or philosophy changes, the agent MUST update `README.md` and `SKILL.md` immediately to prevent stale documentation.
-
-* **Update triggers**: "Philosophy definition changed", "New risk label added", "Core automation function expanded"
-
-## 📋 Execution Flowchart (Agent's Mental Model)
+## 📋 Agent Execution Flowchart
 
 ```
-User Reports Git Issue
+Diagnose Current State (status + log + reflog)
   ↓
-[1] Auto-Diagnosis (status + reflog) → Determine Risk Matrix
+Is the flow tangled or optimized?
   ↓
-[2] Automated Recovery (Conflict/Rebase/Head fixes)
+[1] If Optimized & Clean: Recommend auto-merge if pending.
+  ↓ [2] If Tangled/Broken:
+     a. Identify root branch via reflog.
+     b. Execute recovery (rebase/reset/checkout).
+     c. Verify flow integrity.
   ↓
-[3] Create Safety Branch (if Risk is Caution/Dangerous)
+Commit with Workflow Label ([fix]/[workflow])
   ↓
-[4] Commit with Label ([fix]/[feat]/[docs])
-  ↓
-[5] Generate Auto PR (gh pr create) & Update README.md/SKILL.md
+Generate PR via `gh pr create` to document the workflow correction.
 ```
 
 *Last verified: 2026-04-25*
