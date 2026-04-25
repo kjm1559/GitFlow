@@ -1,70 +1,74 @@
 # GitFlow 🩺
 
-**"진단하고, 판단하고, 자동복구한다."**
-**Git 흐름의 꼬임을 스스로 해결하는 자동 복구 에이전트**
+**"Diagnose, auto-resolve, and normalize via PR & Docs."**
+**The Git Agent for Automated Conflict Resolution and Workflow Normalization**
 
-## 📖 개요
-이 스킬은 Git 충돌, 꼬인 흐름, 실수한 커밋을 **에이전트가 스스로 판단하여 자동 처리**합니다.
+## 📖 Overview
+This skill enables the agent to automatically diagnose and resolve Git conflicts, tangled branches, and erroneous commits.
 
-필수 확인이 필요한 극히 제한된 상황(Force Push 등)을 제외하고는 **에이전트가 자동 복구하여 정상화**하여 사용자 개입을 최소화합니다.
+Instead of manual intervention, the core purpose is: **"Auto-Recover → Labeled PR Generation → Documentation Sync"**.
 
-## ✨ 주요 기능
+## 🎯 Primary Objectives
+1.  **Automated Conflict & Flow Resolution**: Self-diagnose and resolve Git flow bottlenecks (conflicts, detached HEAD, lost commits).
+2.  **Automated PR Reporting**: All fixes and workflow changes are reported via Pull Requests with proper labels (`[feat]`, `[fix]`).
+3.  **Continuous Documentation Sync**: `README.md` and `SKILL.md` are kept in sync whenever core logic changes.
 
-### 1. 상황 진단 (Auto-Diagnosis)
-`git status`, `git log`, `git reflog`를 종합 분석하여 문제의 원인을 파악합니다.
+## ✨ Core Features
 
-### 2. 위험도 판단 (Automated Judgment)
-작업 전 3단계 위험도 매트릭스로 안전성을 스스로 판단합니다.
+### 1. Auto-Diagnosis
+Comprehensively analyzes `git status`, `git log`, and `git reflog` to identify the root cause of Git flow issues and determine risk levels.
 
-| 위험도 | 상황 | 에이전트 행동 |
-|:---|:-:|:-|:-:|
-| **Safe** | 일반적인 충돌, 꼬인 흐름 | **즉시 자동 처리 및 정상화** |
-| **Caution** | 로컬 변경사항 손실 위험 | 자동 백업 후 처리 (보고) |
-| **Dangerous** | Force Push, irreversible Reset | **반드시 사용자 확인 요청** |
+### 2. Risk-Based Automated Recovery
+| Risk Level | Example Situation | Agent Action |
+|:---|:-:|:-:|
+| **Safe** (Auto) | Detached HEAD, Standard Merge/Rebase conflict | **Execute immediate recovery & report via PR.** |
+| **Caution** (Report) | Risk of losing local uncommitted changes | Create a safety branch, execute the fix, and notify the user. |
+| **Dangerous** (Ask) | Force Push, permanent Commit deletion | **Strictly prompt the user for confirmation** (provide options). |
 
-### 3. 자동 복구 (Auto-Processing)
-대부분의 충돌과 꼬인 브랜치는 **자동으로 정상화**합니다.
-- 파일 충돌: 문맥에 따라 `ours`/`theirs` 자동 선택
-- Detached HEAD: 자동으로 복귀 또는 새로운 브랜치로 분리
-- 실수 커밋: `reflog`를 이용해 가장 가까운 지점으로 복원
+### 3. Automated PR Creation & Labeling
+Upon completing an automated task, the agent MUST generate a Pull Request using the `gh` CLI:
+* **Title Format**: `[label] Summary of automated fix` (e.g., `[feat]`, `[fix]`, `[docs]`)
+* **PR Body**: Includes the objective of the fix, changed files, and key automated actions performed.
 
-### 4. 사용자 개입 (Confirmed Only)
-원격 히스토리 overwrite, 영구 삭제 등 **돌이킬 수 없는 작업**만 사용자에게 확인을 요청합니다.
+### 4. Documentation Sync
+When the skill's core logic or philosophy changes, `README.md` and `SKILL.md` are updated immediately to maintain accuracy.
 
-## 🚀 설치 방법
+## 🚀 Installation
 
-레포지토리를 `.hermes/skills` 디렉토리로 복사하거나 링크합니다.
+Clone or link this repository into your `.hermes/skills` directory:
 
 ```bash
 cd ~/.hermes/skills
 ln -sf ~/project/GitFlow git-flow-recovery
 ```
 
-## 📝 커밋 컨벤션
+## 📝 Commit & PR Convention (Labeling Rules)
 
-이 레포지토리의 커밋 및 PR 은 다음 라벨을 사용합니다.
+This repository adheres strictly to the following label rules for all commits and PRs:
 
-| 라벨 | 용도 |
+| Label | Purpose |
 |:---|:-|
-| `[feat]` | 새로운 기능, 스킬 로직 추가 |
-| `[fix]` | 버그 수정, 오타 교정 |
-| `[style]` | 코드 포맷, 레이블 변경 |
-| `[refactor]` | 코드 리팩토링 |
-| `[docs]` | 문서 업데이트 |
-| `[chore]` | 기타 작업을 포함하는 커밋 |
+| `[feat]` | New automated features, recovery patterns, or PR generation logic |
+| `[fix]` | Bug fixes, improvements to conflict resolution logic, typo corrections |
+| `[style]` | Code formatting, whitespace changes (no logic changes) |
+| `[docs]` | Updates to `SKILL.md` or `README.md` documentation |
+| `[refactor]` | Code refactoring (no functional changes) |
+| `[chore]` | Build processes, scripts, and other tooling updates |
+| `[ci]` | CI/CD pipeline changes, automated workflow updates |
 
-**PR 제목 예시**:
-- `[feat] add automated conflict resolution logic`
+**PR Title Examples**:
+- `[feat] add automated merge conflict resolution strategy`
 - `[fix] correct dangerous action judgment rules`
-- `[docs] update SKILL.md philosophy and workflow`
+- `[docs] update workflow and add quick reference to SKILL.md`
 
-## ⚠️ 사용 전 참고 사항
-- 이 스킬은 **자동 복구**를 핵심 철학으로 합니다.
-- 모든 작업 전 자동 임시 브랜치 생성이 보장됩니다.
-- Force Push 등 원격 상태 변경 관련해서는 반드시 확인 절차를 따릅니다.
+## ⚠️ Usage Notes
+- This skill is designed for **auto-recovery**. All normalizations are reported through PRs.
+- A safety backup branch is created automatically before all tasks.
+- **Force Push** and other remote-altering operations require explicit user confirmation.
 
 ---
 
-### 🛠 기술 스택
-*   **Base**: Python (hermes_tools) & Bash
-*   **Logic**: Pattern Matching based on `git reflog`, `status` & `log` outputs.
+### 🛠 Tech Stack
+*   **Base**: Python (hermes_tools), Bash, Git
+*   **Reporting**: GitHub CLI (`gh`)
+*   **Core Logic**: Pattern Matching based on `git reflog`, `status` & `log` outputs.
