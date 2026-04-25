@@ -20,14 +20,19 @@ By comprehensively analyzing `git status`, `git log`, and remote tracking states
 
 ### 2. Smart Merge/Rebase Heuristics
 When a merge or rebase creates a bottleneck, the agent automatically decides the next step:
-* **Conflict Resolution**: Identifies conflicting files and applies the most logical resolution (`theirs` for feature merges, `ours` for hotfixes) based on the active workflow.
-* **Abort & Rollback**: If a workflow state becomes unrecoverable, it automatically aborts the operation and creates a clean rollback point.
+* **Conflict Resolution**: Identifies conflicting files and **summarizes the conflict to present options**. **NEVER** applies `ours`/`theirs` unconditionally. The user **must** decide.
+* **Abort & Rollback**: If a workflow state becomes unrecoverable, it automatically aborts and creates a clean rollback point.
 
 ### 3. Flow Normalization & PR Automation
 Instead of fixing code, this skill fixes the **flow**. Once the flow is normalized, the agent commits the normalized state with a workflow-specific label and initiates an automated PR.
 
 ### 4. Safe Branch Management
 Always ensures workflow integrity by creating safety tracking branches before performing destructive workflow changes (Force Push, Hard Reset).
+
+### 5. Safety Rules
+* **NO UNCONDITIONAL `ours`/`theirs`**: All conflict resolutions require user consent.
+* **NO AUTOMATED RESET/REVERT**: `git reset`/`revert` operations must present reflog rollback points and require explicit confirmation.
+* **NO AUTOMATED `--force`**: Force push operations must present diverged commits to be lost and require explicit confirmation.
 
 ## 🚀 Installation
 

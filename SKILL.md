@@ -20,7 +20,7 @@ Instead of generic conflict resolution, the agent acts as a **Workflow Director*
 |:---|:-:|:-|
 | **Fast-forwardable** | Linear history, clean tip | Automatically perform `Fast-forward Merge` |
 | **Tangled **(Rebase) | Multiple heads, lost commits | Utilize `git reflog` to locate the parent branch, then `rebase` or `cherry-pick`|
-| **Merge Conflict **(Strategy) | Simultaneous changes on same files | Auto-resolve via `ours`/`theirs` or `theirs` based on the active workflow branch. |
+|| **Merge Conflict **(Strategy) | Simultaneous changes on same files | Summarize conflicts and present options; **NEVER** apply `ours`/`theirs` blindly. |
 | **Detached/Orphan** | `HEAD` pointing to an unanchored commit | Automatically bind to a new feature branch or `reset` to the active track. |
 
 ## 🛠 Core Features
@@ -38,7 +38,24 @@ Instead of fixing code, this skill fixes the **flow**. Once the flow is normaliz
 * **Action**: Commit the normalized state with a workflow-specific label.
 * **Report**: Generate a PR to document how the workflow was successfully restored or optimized.
 
-## 📢 Automated Workflow Labels & Reporting
+## 🛡️ Safety Rules (MUST follow)
+
+### [Caution] Conflict Resolution
+* **NEVER** apply `ours` or `theirs` unconditionally.
+* When conflicts arise, **summarize the conflict** and **present options** to the user.
+* Let the user decide the resolution strategy.
+
+### [Restricted-Auto] Reset Family (git reset, git revert)
+* `git reset` (hard/mixed/soft), `git revert` are **destructive** operations that rewrite history.
+* **Must present**: the reflog rollback point (where to restore from), the exact command, and the scope of loss.
+* **Requires explicit user confirmation** before execution.
+
+### [Restricted-Auto] Force Push (git push --force, --force-with-lease)
+* `--force` **destroys remote commits** and must never be automated.
+* **Must present**: (1) Diverged commits to be lost, (2) Safe alternative (e.g., `--force-with-lease`, `--force-with-lease=<ref>`), (3) Pre-push backup branch.
+* **Requires explicit user confirmation** before execution.
+
+### 📢 Automated Workflow Labels & Reporting
 
 When normalizing a Git Flow, the following labels should be used in commit titles and PR bodies:
 
