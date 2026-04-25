@@ -1,37 +1,33 @@
 # GitFlow 🩺
 
-**"Diagnose, auto-resolve, and normalize via PR & Docs."**
-**The Git Agent for Automated Conflict Resolution and Workflow Normalization**
+**"Focus on the Flow, automate the recovery."**
+**Smart Branch Flow Optimization & Tangle Resolution Agent**
 
 ## 📖 Overview
-This skill enables the agent to automatically diagnose and resolve Git conflicts, tangled branches, and erroneous commits.
+This skill specializes in **Git Workflows **(branching strategies, merge patterns)** and **recovering tangled branch histories**. 
 
-Instead of manual intervention, the core purpose is: **"Auto-Recover → Labeled PR Generation → Documentation Sync"**.
+Unlike generic Git skills that focus on basic commands (e.g., `add`, `commit`), GitFlow focuses on optimizing the high-level flow, diagnosing flow bottlenecks, and normalizing the development process through automated Pull Requests.
 
 ## 🎯 Primary Objectives
-1.  **Automated Conflict & Flow Resolution**: Self-diagnose and resolve Git flow bottlenecks (conflicts, detached HEAD, lost commits).
-2.  **Automated PR Reporting**: All fixes and workflow changes are reported via Pull Requests with proper labels (`[feat]`, `[fix]`).
-3.  **Continuous Documentation Sync**: `README.md` and `SKILL.md` are kept in sync whenever core logic changes.
+1.  **Flow Optimization**: Automatically decide and apply the most efficient workflow strategy (Fast-forward, Squash, Merge, or Rebase) based on branch context.
+2.  **Tangle Resolution**: Diagnose and untangle corrupted branch histories (Detached HEAD, Orphaned branches, or Rebase dead-ends) autonomously.
+3.  **Automated Workflow Reporting**: All flow modifications and normalizations are reported via Pull Requests with workflow-appropriate labels.
 
-## ✨ Core Features
+## ✨ Key Features
 
-### 1. Auto-Diagnosis
-Comprehensively analyzes `git status`, `git log`, and `git reflog` to identify the root cause of Git flow issues and determine risk levels.
+### 1. Workflow Health Diagnosis
+By comprehensively analyzing `git status`, `git log`, and remote tracking states, the agent diagnoses the "health" of the repository's current workflow.
 
-### 2. Risk-Based Automated Recovery
-| Risk Level | Example Situation | Agent Action |
-|:---|:-:|:-:|
-| **Safe** (Auto) | Detached HEAD, Standard Merge/Rebase conflict | **Execute immediate recovery & report via PR.** |
-| **Caution** (Report) | Risk of losing local uncommitted changes | Create a safety branch, execute the fix, and notify the user. |
-| **Dangerous** (Ask) | Force Push, permanent Commit deletion | **Strictly prompt the user for confirmation** (provide options). |
+### 2. Smart Merge/Rebase Heuristics
+When a merge or rebase creates a bottleneck, the agent automatically decides the next step:
+* **Conflict Resolution**: Identifies conflicting files and applies the most logical resolution (`theirs` for feature merges, `ours` for hotfixes) based on the active workflow.
+* **Abort & Rollback**: If a workflow state becomes unrecoverable, it automatically aborts the operation and creates a clean rollback point.
 
-### 3. Automated PR Creation & Labeling
-Upon completing an automated task, the agent MUST generate a Pull Request using the `gh` CLI:
-* **Title Format**: `[label] Summary of automated fix` (e.g., `[feat]`, `[fix]`, `[docs]`)
-* **PR Body**: Includes the objective of the fix, changed files, and key automated actions performed.
+### 3. Flow Normalization & PR Automation
+Instead of fixing code, this skill fixes the **flow**. Once the flow is normalized, the agent commits the normalized state with a workflow-specific label and initiates an automated PR.
 
-### 4. Documentation Sync
-When the skill's core logic or philosophy changes, `README.md` and `SKILL.md` are updated immediately to maintain accuracy.
+### 4. Safe Branch Management
+Always ensures workflow integrity by creating safety tracking branches before performing destructive workflow changes (Force Push, Hard Reset).
 
 ## 🚀 Installation
 
@@ -42,33 +38,33 @@ cd ~/.hermes/skills
 ln -sf ~/project/GitFlow git-flow-recovery
 ```
 
-## 📝 Commit & PR Convention (Labeling Rules)
+## 📝 Commit & Workflow Convention (Labeling Rules)
 
-This repository adheres strictly to the following label rules for all commits and PRs:
+This repository strictly adheres to the following label rules for workflow management and PRs:
 
 | Label | Purpose |
-|:---|:-|
-| `[feat]` | New automated features, recovery patterns, or PR generation logic |
-| `[fix]` | Bug fixes, improvements to conflict resolution logic, typo corrections |
-| `[style]` | Code formatting, whitespace changes (no logic changes) |
-| `[docs]` | Updates to `SKILL.md` or `README.md` documentation |
-| `[refactor]` | Code refactoring (no functional changes) |
-| `[chore]` | Build processes, scripts, and other tooling updates |
-| `[ci]` | CI/CD pipeline changes, automated workflow updates |
+|:---|:- |
+| `[workflow]` | Changes to branch strategy, merge patterns, or core flow rules |
+| `[fix]` | Fixing tangled histories, orphaned branches, or broken rebase chains |
+| `[optimize]` | Improving flow efficiency (e.g., converting merge commits to squash, rebasing) |
+| `[docs]` | Updates to `SKILL.md` or `README.md` |
+| `[feat]` | Adding new workflow heuristics or automated branch detection patterns |
+| `[chore]` | Maintenance tasks, scripts, and repository management |
+| `[ci]` | CI/CD pipeline updates, automated workflow scripts |
 
 **PR Title Examples**:
-- `[feat] add automated merge conflict resolution strategy`
-- `[fix] correct dangerous action judgment rules`
-- `[docs] update workflow and add quick reference to SKILL.md`
+- `[workflow] rebase feature/x onto main for linear history`
+- `[optimize] squash merge commit history on develop branch`
+- `[fix] resolved tangled rebase chain involving branches A & B`
 
 ## ⚠️ Usage Notes
-- This skill is designed for **auto-recovery**. All normalizations are reported through PRs.
-- A safety backup branch is created automatically before all tasks.
-- **Force Push** and other remote-altering operations require explicit user confirmation.
+- This skill focuses on the **workflow layer**, not low-level Git object repair.
+- All normalizations are reported through Pull Requests to maintain a traceable audit trail.
+- Automatic safety tracking branches are created before any destructive operations.
 
 ---
 
 ### 🛠 Tech Stack
 *   **Base**: Python (hermes_tools), Bash, Git
 *   **Reporting**: GitHub CLI (`gh`)
-*   **Core Logic**: Pattern Matching based on `git reflog`, `status` & `log` outputs.
+*   **Core Logic**: Workflow heuristics based on `git reflog`, `status`, and `log` lineage analysis.
